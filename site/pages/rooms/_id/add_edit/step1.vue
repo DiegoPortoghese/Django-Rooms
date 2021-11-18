@@ -1,0 +1,85 @@
+<template>
+<div>
+
+<div :key="room.id">
+  <Room-Create-NavBar :room="room" :activestep="activestep" ></Room-Create-NavBar>
+</div>
+
+  <b-container>
+    <b-row class="mt-4">
+      <b-col sm="6" offset-sm="3">
+        <h3>Che tipo di alloggio stai pubblicando?</h3>
+        <form @submit.prevent="submitFuncion" autocomplete="on">
+          <b-form-group label="Scegli un tipo di alloggio" onchange="document.getElementById('btn-next').disabled = false;">
+            <b-form-radio v-model="room.category" name="some-radios" value="1">Hotel</b-form-radio>
+            <b-form-radio v-model="room.category" name="some-radios" value="2">Bed and Breakfast</b-form-radio>
+            <b-form-radio v-model="room.category" name="some-radios" value="3">Appartamento</b-form-radio>
+          </b-form-group>
+          <br>
+          <button class="btn btn-primary btn-block mt-2" v-if="room.category > 0" type="submit" id="btn-next" > Avanti </button>
+          <button class="btn btn-primary btn-block mt-2" v-if="room.category < 1" type="submit" id="btn-next" disabled> Avanti </button>
+        </form> 
+      </b-col>
+    </b-row>
+    </b-container>
+
+
+</div>
+</template>
+<script>
+    import RoomCreateNavBar from "~/components/RoomCreateNavBar.vue";
+    // on click next execute query
+    export default {
+      layout: 'no-footer',
+    head() {
+      return {
+        title: "Crea Annuncio: Tipo di alloggio"
+      };
+    },
+    components: {
+      RoomCreateNavBar
+    },
+  
+    async asyncData({ $axios, params }) {
+      try {
+        let room = await $axios.$get(`api/rooms/${params.id}/`);
+        return { room };
+      } catch (e) {
+        return { room: [] };
+      }
+    },
+    data() {
+      return {
+        room: {
+          category: 0,
+          creation_progress: 0
+        },
+        activestep: 1
+      };
+    },
+    methods: {
+      async submitFuncion() {
+        this.room.creation_progress = 1
+        let editedRoom = this.room
+        const config = {
+          headers: { "content-type": "application/json" }
+        };
+        /*let formData = new FormData();
+        for (let data in editedRoom) {
+          formData.append(data, editedRoom[data]);
+        }*/
+        //console.log(formData);
+        try {
+          console.log(editedRoom)
+          let response = await this.$axios.$patch(`api/rooms/${editedRoom.id}/`, editedRoom, config);
+          this.$router.push("step2");
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+
+
+
+  };
+</script>
